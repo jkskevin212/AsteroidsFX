@@ -8,37 +8,31 @@ import dk.sdu.mmmi.cbse.common.data.World;
 import dk.sdu.mmmi.cbse.common.services.IEntityProcessingService;
 
 public class AsteroidProcessor implements IEntityProcessingService {
-
     private IAsteroidSplitter asteroidSplitter = new AsteroidSplitterImpl();
 
     @Override
     public void process(GameData gameData, World world) {
+        for (Entity e : world.getEntities(Asteroid.class)) {
+            Asteroid asteroid = (Asteroid) e;
 
-        for (Entity asteroid : world.getEntities(Asteroid.class)) {
-            double changeX = Math.cos(Math.toRadians(asteroid.getRotation()));
-            double changeY = Math.sin(Math.toRadians(asteroid.getRotation()));
 
-            asteroid.setX(asteroid.getX() + changeX * 0.5);
-            asteroid.setY(asteroid.getY() + changeY * 0.5);
+            double dx = asteroid.getDx();
+            double dy = asteroid.getDy();
 
-            if (asteroid.getX() < 0) {
-                asteroid.setX(asteroid.getX() - gameData.getDisplayWidth());
+            if (dx == 0 && dy == 0) {
+                dx = Math.cos(Math.toRadians(asteroid.getRotation())) * 0.5;
+                dy = Math.sin(Math.toRadians(asteroid.getRotation())) * 0.5;
             }
 
-            if (asteroid.getX() > gameData.getDisplayWidth()) {
-                asteroid.setX(asteroid.getX() % gameData.getDisplayWidth());
-            }
+            asteroid.setX(asteroid.getX() + dx);
+            asteroid.setY(asteroid.getY() + dy);
 
-            if (asteroid.getY() < 0) {
-                asteroid.setY(asteroid.getY() - gameData.getDisplayHeight());
-            }
 
-            if (asteroid.getY() > gameData.getDisplayHeight()) {
-                asteroid.setY(asteroid.getY() % gameData.getDisplayHeight());
-            }
-
+            if (asteroid.getX() < 0) asteroid.setX(asteroid.getX() + gameData.getDisplayWidth());
+            if (asteroid.getX() > gameData.getDisplayWidth()) asteroid.setX(asteroid.getX() % gameData.getDisplayWidth());
+            if (asteroid.getY() < 0) asteroid.setY(asteroid.getY() + gameData.getDisplayHeight());
+            if (asteroid.getY() > gameData.getDisplayHeight()) asteroid.setY(asteroid.getY() % gameData.getDisplayHeight());
         }
-
     }
 
     /**
@@ -51,6 +45,4 @@ public class AsteroidProcessor implements IEntityProcessingService {
     public void removeAsteroidSplitter(IAsteroidSplitter asteroidSplitter) {
         this.asteroidSplitter = null;
     }
-
-
 }

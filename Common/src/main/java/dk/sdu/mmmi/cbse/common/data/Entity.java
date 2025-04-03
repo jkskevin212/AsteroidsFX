@@ -12,7 +12,12 @@ public class Entity implements Serializable {
     private double y;
     private double rotation;
     private float radius;
-            
+    private boolean didCollide;
+
+    public int life = 3;
+
+    public int getLife() {return life;}
+    public void setLife(int life) {this.life = life;}
 
     public String getID() {
         return ID.toString();
@@ -60,4 +65,15 @@ public class Entity implements Serializable {
     public float getRadius() {
         return this.radius;
     }
+
+    private boolean isCollide;
+
+    public boolean didCollide() {
+        return didCollide;
+    }
+
+    public void didCollide(boolean didCollide) {
+        this.didCollide = didCollide;
+    }
+
 }

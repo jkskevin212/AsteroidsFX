@@ -1,14 +1,11 @@
-package dk.sdu.mmmi.cbse.playersystem;
+package dk.sdu.mmmi.cbse.enemysystem;
 
 import dk.sdu.mmmi.cbse.common.data.Entity;
 import dk.sdu.mmmi.cbse.common.data.ILifeEntity;
 
-
-public class Player extends Entity implements ILifeEntity {
+public class Enemy extends Entity implements ILifeEntity {
     private int life = 3;
 
     public int getLife() {return life;}
     public void hit() {life--;}
-
-
 }

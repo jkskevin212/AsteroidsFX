@@ -24,10 +24,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-/**
- *
- * @author jcs
- */
+
 class Game {
 
     private final GameData gameData = new GameData();

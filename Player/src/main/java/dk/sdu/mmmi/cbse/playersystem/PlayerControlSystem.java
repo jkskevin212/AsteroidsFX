@@ -16,9 +16,14 @@ import static java.util.stream.Collectors.toList;
 
 public class PlayerControlSystem implements IEntityProcessingService {
 
+    private boolean canShoot = true;
+    private final float fireRate = 0.3f;
+
+
+
     @Override
     public void process(GameData gameData, World world) {
-            
+
         for (Entity player : world.getEntities(Player.class)) {
             if (gameData.getKeys().isDown(GameKeys.LEFT)) {
                 player.setRotation(player.getRotation() - 5);                
@@ -32,13 +37,23 @@ public class PlayerControlSystem implements IEntityProcessingService {
                 player.setX(player.getX() + changeX);
                 player.setY(player.getY() + changeY);
             }
-            if(gameData.getKeys().isDown(GameKeys.SPACE)) {                
-                getBulletSPIs().stream().findFirst().ifPresent(
-                        spi -> {world.addEntity(spi.createBullet(player, gameData));}
-                );
+            if (gameData.getKeys().isDown(GameKeys.SPACE)) {
+                if (canShoot) {
+                    getBulletSPIs().stream().findFirst().ifPresent(
+                            spi -> {
+                                Entity b = spi.createBullet(player, gameData);
+                                if (b instanceof Bullet) ((Bullet) b).setOwner("player");
+                                world.addEntity(b);
+                            }
+                    );
+                    canShoot = false;
+                }
+            } else {
+
+                canShoot = true;
             }
-            
-        if (player.getX() < 0) {
+
+            if (player.getX() < 0) {
             player.setX(1);
         }
 

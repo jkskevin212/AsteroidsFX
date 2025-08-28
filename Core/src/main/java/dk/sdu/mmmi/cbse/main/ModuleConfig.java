@@ -1,10 +1,16 @@
 package dk.sdu.mmmi.cbse.main;
 
+
+import dk.sdu.mmmi.cbse.common.data.GameData;
+import dk.sdu.mmmi.cbse.common.data.World;
 import dk.sdu.mmmi.cbse.common.services.IEntityProcessingService;
 import dk.sdu.mmmi.cbse.common.services.IGamePluginService;
 import dk.sdu.mmmi.cbse.common.services.IPostEntityProcessingService;
+import dk.sdu.mmmi.cbse.common.asteroids.IAsteroidSplitter;
+
 import java.util.List;
 import java.util.ServiceLoader;
+
 import static java.util.stream.Collectors.toList;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,4 +41,12 @@ class ModuleConfig {
     public List<IPostEntityProcessingService> postEntityProcessingServices() {
         return ServiceLoader.load(IPostEntityProcessingService.class).stream().map(ServiceLoader.Provider::get).collect(toList());
     }
+
+    @Bean
+    public List<IAsteroidSplitter> asteroidSplitters() {
+        return ServiceLoader.load(IAsteroidSplitter.class)
+                .stream().map(ServiceLoader.Provider::get).collect(toList());
+    }
+
+
 }

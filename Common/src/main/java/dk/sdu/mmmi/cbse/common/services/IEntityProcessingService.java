@@ -6,12 +6,9 @@ import dk.sdu.mmmi.cbse.common.data.World;
 public interface IEntityProcessingService {
 
     /**
+     * this runs all frames for updating entities, like shooting and movement.
      *
      *
-     *
-     * @param gameData
-     * @param world
-     * @throws
      */
     void process(GameData gameData, World world);
 }

@@ -4,8 +4,9 @@ import dk.sdu.mmmi.cbse.common.data.GameData;
 import dk.sdu.mmmi.cbse.common.data.World;
 
 /**
+ * this handles collisions, and used after all entities is updated.
  *
- * @author jcs
+ *
  */
 public interface IPostEntityProcessingService {
 

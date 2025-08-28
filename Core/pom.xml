@@ -74,6 +74,11 @@
             <artifactId>spring-jcl</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>6.1.12</version>
+        </dependency>
+        <dependency>
             <groupId>dk.sdu.mmmi.cbse</groupId>
             <artifactId>CommonAsteroids</artifactId>
             <version>1.0.1-SNAPSHOT</version>
@@ -83,22 +88,25 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.6.1</version>
                 <executions>
                     <execution>
-                        <id>copy-dependencies</id>
-                        <phase>package</phase>
+                        <id>copy-core-runtime-deps</id>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <includeArtifactIds>javafx-controls,javafx-graphics,javafx-base,spring-context,spring-core,spring-beans,spring-aop,spring-expression,spring-jcl</includeArtifactIds>
-                            <outputDirectory>../mods-mvn</outputDirectory>
+                            <includeScope>runtime</includeScope>
+                            <outputDirectory>${project.basedir}/../mods-mvn</outputDirectory>
+                            <overWriteIfNewer>true</overWriteIfNewer>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+
 </project>

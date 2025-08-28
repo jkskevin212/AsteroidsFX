@@ -11,6 +11,7 @@ import dk.sdu.mmmi.cbse.common.data.World;
 import dk.sdu.mmmi.cbse.common.services.IEntityProcessingService;
 import dk.sdu.mmmi.cbse.common.services.IGamePluginService;
 import dk.sdu.mmmi.cbse.common.services.IPostEntityProcessingService;
+import dk.sdu.mmmi.cbse.main.ScoringClient;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +28,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 class Game {
 
+    private final Text destroyedText = new Text(10, 20, "Destroyed asteroids: 0");
     private final GameData gameData = new GameData();
     private final World world = new World();
     private final Map<Entity, Polygon> polygons = new ConcurrentHashMap<>();
@@ -34,16 +36,30 @@ class Game {
     private final List<IGamePluginService> gamePluginServices;
     private final List<IEntityProcessingService> entityProcessingServiceList;
     private final List<IPostEntityProcessingService> postEntityProcessingServices;
+    private ScoringClient scoringClient;
+
+    Game(List<IGamePluginService> gamePluginServices,
+         List<IEntityProcessingService> entityProcessingServiceList,
+         List<IPostEntityProcessingService> postEntityProcessingServices,
+         ScoringClient scoringClient) {
+        this.gamePluginServices = gamePluginServices;
+        this.entityProcessingServiceList = entityProcessingServiceList;
+        this.postEntityProcessingServices = postEntityProcessingServices;
+        this.scoringClient = scoringClient;
+    }
+
 
     Game(List<IGamePluginService> gamePluginServices, List<IEntityProcessingService> entityProcessingServiceList, List<IPostEntityProcessingService> postEntityProcessingServices) {
         this.gamePluginServices = gamePluginServices;
         this.entityProcessingServiceList = entityProcessingServiceList;
         this.postEntityProcessingServices = postEntityProcessingServices;
+        this.scoringClient = null;
     }
 
     public void start(Stage window) throws Exception {
         Text text = new Text(10, 20, "Destroyed asteroids: 0");
         gameWindow.setPrefSize(gameData.getDisplayWidth(), gameData.getDisplayHeight());
+        gameWindow.getChildren().add(destroyedText);
         gameWindow.getChildren().add(text);
 
         Scene scene = new Scene(gameWindow);
@@ -103,14 +119,26 @@ class Game {
         }.start();
     }
 
+    private int lastDestroyed = 0;
+
     private void update() {
-        for (IEntityProcessingService entityProcessorService : getEntityProcessingServices()) {
-            entityProcessorService.process(gameData, world);
+        for (IEntityProcessingService s : getEntityProcessingServices()) s.process(gameData, world);
+        for (IPostEntityProcessingService s : getPostEntityProcessingServices()) s.process(gameData, world);
+
+        int cur = gameData.getDestroyedAsteroids();
+        int delta = cur - lastDestroyed;
+
+        // kald scoring-service hvis der er sket noget
+        if (delta > 0 && scoringClient != null) {
+            scoringClient.add(delta * 10);
         }
-        for (IPostEntityProcessingService postEntityProcessorService : getPostEntityProcessingServices()) {
-            postEntityProcessorService.process(gameData, world);
-        }
+
+        // opdater HUD og husk ny værdi
+        destroyedText.setText("Destroyed asteroids: " + cur);
+        lastDestroyed = cur;
     }
+
+
 
     private void draw() {
         for (Entity polygonEntity : polygons.keySet()) {

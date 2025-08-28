@@ -3,113 +3,99 @@ package dk.sdu.mmmi.cbse.collisionsystem;
 import dk.sdu.mmmi.cbse.common.asteroids.Asteroid;
 import dk.sdu.mmmi.cbse.common.asteroids.IAsteroidSplitter;
 import dk.sdu.mmmi.cbse.common.bullet.Bullet;
-import dk.sdu.mmmi.cbse.common.data.Entity;
-import dk.sdu.mmmi.cbse.common.data.GameData;
-import dk.sdu.mmmi.cbse.common.data.ILifeEntity;
-import dk.sdu.mmmi.cbse.common.data.World;
-import dk.sdu.mmmi.cbse.enemysystem.Enemy;
-import dk.sdu.mmmi.cbse.playersystem.Player;
+import dk.sdu.mmmi.cbse.common.data.*;
 import dk.sdu.mmmi.cbse.common.services.IPostEntityProcessingService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ServiceLoader;
 
 public class CollisionDetector implements IPostEntityProcessingService {
 
     @Override
     public void process(GameData gameData, World world) {
-        for (Entity entity1 : world.getEntities()) {
-            for (Entity entity2 : world.getEntities()) {
-                if (entity1.getID().equals(entity2.getID())) continue;
+        List<Entity> es = new ArrayList<>(world.getEntities());
+        int n = es.size();
+        for (int i = 0; i < n; i++) {
+            Entity a = es.get(i);
+            for (int j = i + 1; j < n; j++) {
+                Entity b = es.get(j);
 
+                if (a instanceof Asteroid && b instanceof Asteroid) continue;
+                if ((a instanceof IEnemy && b instanceof Asteroid) || (a instanceof Asteroid && b instanceof IEnemy)) continue;
 
-                if (entity1 instanceof Asteroid && entity2 instanceof Asteroid) continue;
+                if (!collides(a, b)) continue;
 
-
-                if ((entity1 instanceof Enemy && entity2 instanceof Asteroid) ||
-                        (entity1 instanceof Asteroid && entity2 instanceof Enemy)) continue;
-
-                if (collides(entity1, entity2)) {
-
-
-                    if (entity1 instanceof Asteroid && entity2 instanceof Bullet) {
-                        Bullet b = (Bullet) entity2;
-                        if ("player".equals(b.getOwner())) {
-                            splitAsteroid(entity1, world);
-                            world.removeEntity(entity2);
-                            continue;
-                        }
+                if (a instanceof Asteroid && b instanceof Bullet) {
+                    Bullet blt = (Bullet) b;
+                    if ("player".equals(blt.getOwner())) {
+                        splitAsteroid(a, world);
+                        world.removeEntity(b);
                     }
-
-                    if (entity2 instanceof Asteroid && entity1 instanceof Bullet) {
-                        Bullet b = (Bullet) entity1;
-                        if ("player".equals(b.getOwner())) {
-                            splitAsteroid(entity2, world);
-                            world.removeEntity(entity1);
-                            continue;
-                        }
+                    continue;
+                }
+                if (b instanceof Asteroid && a instanceof Bullet) {
+                    Bullet blt = (Bullet) a;
+                    if ("player".equals(blt.getOwner())) {
+                        splitAsteroid(b, world);
+                        world.removeEntity(a);
                     }
+                    continue;
+                }
 
-
-                    if (entity1 instanceof Enemy && entity2 instanceof Bullet) {
-                        Bullet b = (Bullet) entity2;
-                        if ("player".equals(b.getOwner())) {
-                            reduceLife(entity1, world);
-                            world.removeEntity(entity2);
-                            continue;
-                        }
+                if (a instanceof IEnemy && b instanceof Bullet) {
+                    Bullet blt = (Bullet) b;
+                    if ("player".equals(blt.getOwner())) {
+                        reduceLife(a, world);
+                        world.removeEntity(b);
                     }
-
-                    if (entity2 instanceof Enemy && entity1 instanceof Bullet) {
-                        Bullet b = (Bullet) entity1;
-                        if (!"player".equals(b.getOwner())) {
-                            reduceLife(entity2, world);
-                            world.removeEntity(entity1);
-                            continue;
-                        }
+                    continue;
+                }
+                if (b instanceof IEnemy && a instanceof Bullet) {
+                    Bullet blt = (Bullet) a;
+                    if (!"player".equals(blt.getOwner())) {
+                        reduceLife(b, world);
+                        world.removeEntity(a);
                     }
+                    continue;
+                }
 
+                if ((a instanceof IEnemy && b instanceof IPlayer) || (b instanceof IEnemy && a instanceof IPlayer)) {
+                    reduceLife(a, world);
+                    reduceLife(b, world);
+                    continue;
+                }
 
-                    if ((entity1 instanceof Enemy && entity2 instanceof Player) ||
-                            (entity2 instanceof Enemy && entity1 instanceof Player)) {
-                        reduceLife(entity1, world);
-                        reduceLife(entity2, world);
-                        continue;
-                    }
-
-
-                    if (entity1 instanceof Player && entity2 instanceof Asteroid) {
-                        reduceLife(entity1, world);
-                        continue;
-                    }
-
-                    if (entity2 instanceof Player && entity1 instanceof Asteroid) {
-                        reduceLife(entity2, world);
-                    }
+                if (a instanceof IPlayer && b instanceof Asteroid) {
+                    // hvis du vil instant-død: world.removeEntity(a); else:
+                    reduceLife(a, world);
+                    continue;
+                }
+                if (b instanceof IPlayer && a instanceof Asteroid) {
+                    // hvis du vil instant-død: world.removeEntity(b); else:
+                    reduceLife(b, world);
                 }
             }
         }
     }
 
     private void splitAsteroid(Entity asteroid, World world) {
-        for (IAsteroidSplitter splitter : ServiceLoader.load(IAsteroidSplitter.class)) {
-            splitter.createSplitAsteroid(asteroid, world);
+        for (IAsteroidSplitter s : ServiceLoader.load(IAsteroidSplitter.class)) {
+            s.createSplitAsteroid(asteroid, world);
         }
     }
 
-    private void reduceLife(Entity entity, World world) {
-        if (entity instanceof ILifeEntity) {
-            ILifeEntity lifeEntity = (ILifeEntity) entity;
-            lifeEntity.hit();
-            if (lifeEntity.getLife() <= 0) {
-                world.removeEntity(entity);
-            }
+    private void reduceLife(Entity e, World w) {
+        if (e instanceof ILifeEntity le) {
+            le.hit();
+            if (le.getLife() <= 0) w.removeEntity(e);
         }
     }
 
-    private boolean collides(Entity entity1, Entity entity2) {
-        float dx = (float) entity1.getX() - (float) entity2.getX();
-        float dy = (float) entity1.getY() - (float) entity2.getY();
-        float distance = (float) Math.sqrt(dx * dx + dy * dy);
-        return distance < (entity1.getRadius() + entity2.getRadius());
+    private boolean collides(Entity e1, Entity e2) {
+        float dx = (float)(e1.getX() - e2.getX());
+        float dy = (float)(e1.getY() - e2.getY());
+        float dist = (float)Math.sqrt(dx*dx + dy*dy);
+        return dist < (e1.getRadius() + e2.getRadius());
     }
 }

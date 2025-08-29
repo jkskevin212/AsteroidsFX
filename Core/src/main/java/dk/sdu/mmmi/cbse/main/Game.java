@@ -77,7 +77,6 @@ class Game {
 
         });
 
-        // Lookup all Game Plugins using ServiceLoader
         for (IGamePluginService iGamePlugin : getGamePluginServices()) {
             iGamePlugin.start(gameData, world);
         }

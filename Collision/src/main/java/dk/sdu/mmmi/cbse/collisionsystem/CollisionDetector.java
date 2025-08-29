@@ -67,12 +67,10 @@ public class CollisionDetector implements IPostEntityProcessingService {
                 }
 
                 if (a instanceof IPlayer && b instanceof Asteroid) {
-                    // hvis du vil instant-død: world.removeEntity(a); else:
                     reduceLife(a, world);
                     continue;
                 }
                 if (b instanceof IPlayer && a instanceof Asteroid) {
-                    // hvis du vil instant-død: world.removeEntity(b); else:
                     reduceLife(b, world);
                 }
             }
